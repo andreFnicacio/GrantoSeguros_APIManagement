@@ -61,4 +61,24 @@ router.post('/register', userController_1.createUser);
  *         description: Credenciais inválidas
  */
 router.post('/login', userController_1.loginUser);
+/**
+ * @swagger
+ * /users:
+ *   get:
+ *     summary: Busca um usuário pelo número de telefone
+ *     tags: [Users]
+ *     parameters:
+ *       - in: query
+ *         name: phone
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Número de telefone do usuário
+ *     responses:
+ *       200:
+ *         description: Usuário encontrado
+ *       404:
+ *         description: Usuário não encontrado
+ */
+router.get('/', userController_1.getUserByPhone);
 exports.default = router;

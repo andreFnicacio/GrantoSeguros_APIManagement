@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.loginUser = exports.createUser = void 0;
+exports.getUserByPhone = exports.loginUser = exports.createUser = void 0;
 const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const prisma = new client_1.PrismaClient();
@@ -44,3 +44,19 @@ const loginUser = async (req, res) => {
     }
 };
 exports.loginUser = loginUser;
+const getUserByPhone = async (req, res) => {
+    const { phone } = req.query;
+    try {
+        const user = await prisma.user.findFirst({
+            where: { phone: String(phone) },
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        res.status(200).json(user);
+    }
+    catch (error) {
+        res.status(400).json({ error: error });
+    }
+};
+exports.getUserByPhone = getUserByPhone;
