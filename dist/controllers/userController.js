@@ -46,12 +46,13 @@ const loginUser = async (req, res) => {
 exports.loginUser = loginUser;
 const getUserByPhone = async (req, res) => {
     const { phone } = req.query;
+    //Inputed data
     try {
         const user = await prisma.user.findFirst({
             where: { phone: String(phone) },
         });
         if (!user) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(200).json({ data: 'User not found' });
         }
         res.status(200).json(user);
     }
