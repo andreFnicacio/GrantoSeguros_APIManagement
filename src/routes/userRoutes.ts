@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { createUser, loginUser, getUserByPhone } from '../controllers/userController';
-import { uploadDocument } from '../controllers/documentController'; // Importando o novo controlador
+import { uploadDocument, getDocuments, deleteDocuments } from '../controllers/documentController';
 
 const router = Router();
 
@@ -95,10 +95,17 @@ router.get('/', getUserByPhone);
 
 /**
  * @swagger
- * /users/ursula/upload:
+ * /ursula/upload:
  *   post:
  *     summary: Faz upload de um documento
  *     tags: [Documents]
+ *     parameters:
+ *       - in: header
+ *         name: accept
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Secret token do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -116,5 +123,47 @@ router.get('/', getUserByPhone);
  *         description: Erro no envio do documento
  */
 router.post('/ursula/upload', uploadDocument);
+
+/**
+ * @swagger
+ * /ursula/documents:
+ *   get:
+ *     summary: Busca todos os documentos associados ao secret token
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: header
+ *         name: accept
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Secret token do usuário
+ *     responses:
+ *       200:
+ *         description: Documentos recuperados com sucesso
+ *       400:
+ *         description: Erro ao buscar documentos
+ */
+router.get('/ursula/documents', getDocuments);
+
+/**
+ * @swagger
+ * /ursula/documents:
+ *   delete:
+ *     summary: Apaga todos os documentos associados ao secret token
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: header
+ *         name: accept
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Secret token do usuário
+ *     responses:
+ *       200:
+ *         description: Documentos apagados com sucesso
+ *       400:
+ *         description: Erro ao apagar documentos
+ */
+router.delete('/ursula/documents', deleteDocuments);
 
 export default router;

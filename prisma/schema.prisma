@@ -9,17 +9,17 @@ datasource db {
 }
 
 model User {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   name        String
-  email       String   @unique
+  email       String    @unique
   phone       String
   password    String
-  secretToken String @default("")   
+  secretToken String    @unique @default("")
   documents   Document[]
 }
 
 model Document {
-  id                Int      @id @default(autoincrement())
+  id                Int       @id @default(autoincrement())
   category          String
   cnpj_contratante  String
   contracted_value  String
@@ -28,6 +28,6 @@ model Document {
   contratante       String
   contratada        String
   secretToken       String
-  user              User     @relation(fields: [userId], references: [id])
-  userId            Int
+  user              User?     @relation(fields: [secretToken], references: [secretToken])
 }
+

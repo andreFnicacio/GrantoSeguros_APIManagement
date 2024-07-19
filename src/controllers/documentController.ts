@@ -3,8 +3,10 @@ import multer from 'multer';
 import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
 import { parse as csvParse } from 'csv-parse';
+import axios from 'axios';
+import { PrismaClient } from '@prisma/client';
 
-// Configuração do multer para upload de arquivos
+const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single('file');
 
@@ -13,74 +15,135 @@ const cleanContent = (content: string): string => {
   return content.replace(/[\n\r\t]/g, ' ').replace(/\s\s+/g, ' ').trim();
 };
 
-export const uploadDocument = (req: Request, res: Response): void => {
-  upload(req, res, (err: any) => {
+const sendToMicroservice = async (content: string): Promise<any> => {
+  try {
+    const response = await axios.post('https://wij0acdwnd.execute-api.us-east-1.amazonaws.com/dev/analises', {
+      text: content,
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(`Erro ao chamar o micro serviço: ${error}`);
+  }
+};
+
+export const uploadDocument = async (req: Request, res: Response): Promise<void> => {
+  upload(req, res, async (err: any) => {
     if (err) {
-      res.status(400).send({ message: 'Erro no upload do arquivo', error: err.message });
+      res.status(400).send({ message: 'Erro no upload do arquivo', error: err });
       return;
     }
 
     const file = req.file;
+    const secretToken = req.headers.accept; // Pegando o secretToken do header
 
     if (!file) {
       res.status(400).send({ message: 'Nenhum arquivo enviado' });
       return;
     }
 
+    if (!secretToken) {
+      res.status(400).send({ message: 'SecretToken não fornecido no header' });
+      return;
+    }
+
     const fileType = file.mimetype;
     let fileContent: string | undefined;
 
-    switch (fileType) {
-      case 'text/plain':
-        fileContent = file.buffer.toString('utf-8');
-        fileContent = cleanContent(fileContent);
-        console.log('Conteúdo do arquivo TXT:', fileContent);
-        res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
-        break;
+    try {
+      switch (fileType) {
+        case 'text/plain':
+          fileContent = cleanContent(file.buffer.toString('utf-8'));
+          break;
 
-      case 'application/pdf':
-        pdfParse(file.buffer)
-          .then(data => {
-            fileContent = data.text;
-            fileContent = cleanContent(fileContent);
-            console.log('Conteúdo do PDF:', fileContent);
-            res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
-          })
-          .catch(error => {
-            res.status(400).send({ message: 'Erro ao processar PDF', error: error });
+        case 'application/pdf':
+          const pdfData = await pdfParse(file.buffer);
+          fileContent = cleanContent(pdfData.text);
+          break;
+
+        case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        case 'application/msword':
+          const mammothData = await mammoth.extractRawText({ buffer: file.buffer });
+          fileContent = cleanContent(mammothData.value);
+          break;
+
+        case 'text/csv':
+        case 'application/vnd.ms-excel':
+          fileContent = await new Promise<string>((resolve, reject) => {
+            csvParse(file.buffer.toString('utf-8'), { columns: true }, (error, records) => {
+              if (error) {
+                reject(error);
+              } else {
+                resolve(cleanContent(JSON.stringify(records)));
+              }
+            });
           });
-        break;
+          break;
 
-      case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
-      case 'application/msword':
-        mammoth.extractRawText({ buffer: file.buffer })
-          .then(result => {
-            fileContent = result.value;
-            fileContent = cleanContent(fileContent);
-            console.log('Conteúdo do Word:', fileContent);
-            res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
-          })
-          .catch(error => {
-            res.status(400).send({ message: 'Erro ao processar documento Word', error: error.message });
-          });
-        break;
+        default:
+          res.status(400).send({ message: 'Tipo de arquivo não suportado' });
+          return;
+      }
 
-      case 'text/csv':
-      case 'application/vnd.ms-excel':
-        csvParse(file.buffer.toString('utf-8'), { columns: true }, (error: Error | undefined, records: any[]) => {
-          if (error) {
-            res.status(400).send({ message: 'Erro ao processar CSV', error: error.message });
-          } else {
-            fileContent = JSON.stringify(records);
-            fileContent = cleanContent(fileContent);
-            console.log('Conteúdo do CSV:', fileContent);
-            res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
-          }
-        });
-        break;
+      // Enviar o conteúdo para o micro-serviço da Ursula
+      const responseFromMicroservice = await sendToMicroservice(fileContent);
+      const documentData = JSON.parse(responseFromMicroservice.body);
 
-      default:
-        res.status(400).send({ message: 'Tipo de arquivo não suportado' });
+      // Salvar a resposta no banco de dados
+      const document = await prisma.document.create({
+        data: {
+          category: documentData.category,
+          cnpj_contratante: documentData.cnpj_contratante,
+          contracted_value: documentData.contracted_value,
+          initial_validity: documentData.initial_validity,
+          duration: documentData.duration,
+          contratante: documentData.contratante,
+          contratada: documentData.contratada,
+          secretToken: secretToken as string, // Usando o secretToken do header
+        },
+      });
+
+      res.status(200).send({ message: 'Documento enviado e registrado com sucesso', document });
+    } catch (error) {
+      res.status(400).send({ message: 'Erro ao processar o documento', error: error });
     }
   });
 };
+
+export const getDocuments = async (req: Request, res: Response): Promise<void> => {
+  const secretToken = req.headers.accept; // Pegando o secretToken do header
+
+  if (!secretToken) {
+    res.status(400).send({ message: 'SecretToken não fornecido no header' });
+    return;
+  }
+
+  try {
+    const documents = await prisma.document.findMany({
+      where: { secretToken: secretToken as string },
+    });
+
+    res.status(200).json(documents);
+  } catch (error) {
+    res.status(400).send({ message: 'Erro ao buscar documentos', error: error });
+  }
+};
+
+export const deleteDocuments = async (req: Request, res: Response): Promise<void> => {
+  const secretToken = req.headers.accept; // Pegando o secretToken do header
+
+  if (!secretToken) {
+    res.status(400).send({ message: 'SecretToken não fornecido no header' });
+    return;
+  }
+
+  try {
+    await prisma.document.deleteMany({
+      where: { secretToken: secretToken as string },
+    });
+
+    res.status(200).send({ message: 'Documentos apagados com sucesso' });
+  } catch (error) {
+    res.status(400).send({ message: 'Erro ao apagar documentos', error: error });
+  }
+};
+

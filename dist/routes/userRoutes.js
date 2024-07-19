@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const userController_1 = require("../controllers/userController");
-const documentController_1 = require("../controllers/documentController"); // Importando o novo controlador
+const documentController_1 = require("../controllers/documentController");
 const router = (0, express_1.Router)();
 /**
  * @swagger
@@ -90,10 +90,17 @@ router.get('/', userController_1.getUserByPhone);
  */
 /**
  * @swagger
- * /users/ursula/upload:
+ * /ursula/upload:
  *   post:
  *     summary: Faz upload de um documento
  *     tags: [Documents]
+ *     parameters:
+ *       - in: header
+ *         name: accept
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Secret token do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -111,4 +118,44 @@ router.get('/', userController_1.getUserByPhone);
  *         description: Erro no envio do documento
  */
 router.post('/ursula/upload', documentController_1.uploadDocument);
+/**
+ * @swagger
+ * /ursula/documents:
+ *   get:
+ *     summary: Busca todos os documentos associados ao secret token
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: header
+ *         name: accept
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Secret token do usuário
+ *     responses:
+ *       200:
+ *         description: Documentos recuperados com sucesso
+ *       400:
+ *         description: Erro ao buscar documentos
+ */
+router.get('/ursula/documents', documentController_1.getDocuments);
+/**
+ * @swagger
+ * /ursula/documents:
+ *   delete:
+ *     summary: Apaga todos os documentos associados ao secret token
+ *     tags: [Documents]
+ *     parameters:
+ *       - in: header
+ *         name: accept
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Secret token do usuário
+ *     responses:
+ *       200:
+ *         description: Documentos apagados com sucesso
+ *       400:
+ *         description: Erro ao apagar documentos
+ */
+router.delete('/ursula/documents', documentController_1.deleteDocuments);
 exports.default = router;
