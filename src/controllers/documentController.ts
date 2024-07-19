@@ -8,6 +8,11 @@ import { parse as csvParse } from 'csv-parse';
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single('file');
 
+const cleanContent = (content: string): string => {
+  // Remove quebras de linha, tabs e caracteres especiais indesejados
+  return content.replace(/[\n\r\t]/g, ' ').replace(/\s\s+/g, ' ').trim();
+};
+
 export const uploadDocument = (req: Request, res: Response): void => {
   upload(req, res, (err: any) => {
     if (err) {
@@ -28,6 +33,7 @@ export const uploadDocument = (req: Request, res: Response): void => {
     switch (fileType) {
       case 'text/plain':
         fileContent = file.buffer.toString('utf-8');
+        fileContent = cleanContent(fileContent);
         console.log('Conteúdo do arquivo TXT:', fileContent);
         res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
         break;
@@ -36,11 +42,12 @@ export const uploadDocument = (req: Request, res: Response): void => {
         pdfParse(file.buffer)
           .then(data => {
             fileContent = data.text;
+            fileContent = cleanContent(fileContent);
             console.log('Conteúdo do PDF:', fileContent);
             res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
           })
           .catch(error => {
-            res.status(400).send({ message: 'Erro ao processar PDF', error: error.message });
+            res.status(400).send({ message: 'Erro ao processar PDF', error: error });
           });
         break;
 
@@ -49,6 +56,7 @@ export const uploadDocument = (req: Request, res: Response): void => {
         mammoth.extractRawText({ buffer: file.buffer })
           .then(result => {
             fileContent = result.value;
+            fileContent = cleanContent(fileContent);
             console.log('Conteúdo do Word:', fileContent);
             res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
           })
@@ -64,6 +72,7 @@ export const uploadDocument = (req: Request, res: Response): void => {
             res.status(400).send({ message: 'Erro ao processar CSV', error: error.message });
           } else {
             fileContent = JSON.stringify(records);
+            fileContent = cleanContent(fileContent);
             console.log('Conteúdo do CSV:', fileContent);
             res.status(200).send({ message: 'Documento enviado com sucesso', content: fileContent });
           }

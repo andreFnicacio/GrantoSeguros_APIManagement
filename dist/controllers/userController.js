@@ -6,17 +6,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserByPhone = exports.loginUser = exports.createUser = void 0;
 const client_1 = require("@prisma/client");
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const uuid_1 = require("uuid");
 const prisma = new client_1.PrismaClient();
 const createUser = async (req, res) => {
     const { name, email, phone, password } = req.body;
     try {
         const hashedPassword = await bcrypt_1.default.hash(password, 10);
+        const secretToken = (0, uuid_1.v4)();
         const user = await prisma.user.create({
             data: {
                 name,
                 email,
                 phone,
                 password: hashedPassword,
+                secretToken,
             },
         });
         res.status(201).json(user);

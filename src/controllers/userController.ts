@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -9,12 +10,14 @@ export const createUser = async (req: Request, res: Response) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
+    const secretToken = uuidv4();
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
         password: hashedPassword,
+        secretToken,
       },
     });
     res.status(201).json(user);
