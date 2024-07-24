@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single('file');
+let data = [];
 
 const cleanContent = (content: string): string => {
   // Remove quebras de linha, tabs e caracteres especiais indesejados
@@ -83,17 +84,17 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
       const documentData = JSON.parse(responseFromMicroservice.body);
       console.log(documentData);
       // Salvar a resposta no banco de dados
-      const document = await prisma.document.create({
-        data: {
-          category: documentData.category,
-          cnpj_contratante: documentData.cnpj_contratante,
-          contracted_value: documentData.contracted_value,
-          initial_validity: documentData.initial_validity,
-          duration: documentData.duration,
-          contratante: documentData.contratante,
-          contratada: documentData.contratada,
-        },
-      });
+      const document = {
+        category: documentData.category,
+        cnpj_contratante: documentData.cnpj_contratante,
+        contracted_value: documentData.contracted_value,
+        initial_validity: documentData.initial_validity,
+        duration: documentData.duration,
+        contratante: documentData.contratante,
+        contratada: documentData.contratada,
+      };
+
+      data.push(document);
 
       res.status(200).send({ message: 'Documento enviado e registrado com sucesso', document });
     } catch (error) {
