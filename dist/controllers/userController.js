@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserByPhone = exports.loginUser = exports.createUser = void 0;
 const client_1 = require("@prisma/client");
-const uuid_1 = require("uuid");
 const prisma = new client_1.PrismaClient();
 const createUser = async (req, res) => {
     const { name, email, phone, password } = req.body;
@@ -12,16 +11,14 @@ const createUser = async (req, res) => {
             where: { email: email },
         });
         if (existingUser) {
-            return res.status(400).json({ error: 'Email já está em uso' });
+            return res.status(405).json({ error: 'Email já está em uso' });
         }
-        const secretToken = (0, uuid_1.v4)();
         const user = await prisma.user.create({
             data: {
                 name,
                 email,
                 phone,
                 password,
-                secretToken,
             },
         });
         res.status(201).json(user);

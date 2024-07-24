@@ -75,7 +75,12 @@ const uploadDocument = async (req, res) => {
             // Enviar o conteúdo para o micro-serviço da Ursula
             const responseFromMicroservice = await sendToMicroservice(fileContent);
             const documentData = JSON.parse(responseFromMicroservice.body);
-            console.log(documentData);
+            console.log('Dados recebidos do micro-serviço:', documentData);
+            // Verifique a estrutura dos dados recebidos
+            if (!documentData.category || !documentData.cnpj_contratante || !documentData.contracted_value || !documentData.initial_validity || !documentData.contratante || !documentData.contratada) {
+                res.status(400).send({ message: 'Dados incompletos recebidos do micro-serviço' });
+                return;
+            }
             // Salvar a resposta no banco de dados
             const document = await prisma.document.create({
                 data: {
@@ -83,7 +88,7 @@ const uploadDocument = async (req, res) => {
                     cnpj_contratante: documentData.cnpj_contratante,
                     contracted_value: documentData.contracted_value,
                     initial_validity: documentData.initial_validity,
-                    duration: documentData.duration,
+                    duration: documentData.duration || null, // Adicionando valor padrão para campo opcional
                     contratante: documentData.contratante,
                     contratada: documentData.contratada,
                 },
@@ -91,17 +96,13 @@ const uploadDocument = async (req, res) => {
             res.status(200).send({ message: 'Documento enviado e registrado com sucesso', document });
         }
         catch (error) {
+            console.error('Erro ao processar o documento:', error);
             res.status(403).send({ message: 'Erro ao processar o documento', error: error });
         }
     });
 };
 exports.uploadDocument = uploadDocument;
 const getDocuments = async (req, res) => {
-    const secretToken = req.headers.accept; // Pegando o secretToken do header
-    if (!secretToken) {
-        res.status(400).send({ message: 'SecretToken não fornecido no header' });
-        return;
-    }
     try {
         const documents = await prisma.document.findMany();
         res.status(200).json(documents);

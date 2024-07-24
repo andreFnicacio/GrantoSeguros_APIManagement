@@ -94,13 +94,6 @@ router.get('/', userController_1.getUserByPhone);
  *   post:
  *     summary: Faz upload de um documento
  *     tags: [Documents]
- *     parameters:
- *       - in: header
- *         name: accept
- *         required: true
- *         schema:
- *           type: string
- *         description: Secret token do usuário
  *     requestBody:
  *       required: true
  *       content:
@@ -124,13 +117,6 @@ router.post('/ursula/upload', documentController_1.uploadDocument);
  *   get:
  *     summary: Busca todos os documentos associados ao secret token
  *     tags: [Documents]
- *     parameters:
- *       - in: header
- *         name: accept
- *         required: true
- *         schema:
- *           type: string
- *         description: Secret token do usuário
  *     responses:
  *       200:
  *         description: Documentos recuperados com sucesso
