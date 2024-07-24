@@ -34,7 +34,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
     }
 
     const file = req.file;
-    const secretToken = req.headers.accept; // Pegando o secretToken do header
+    const secretToken = 'aa6a9a9b-c252-4288-8bd1-5c5f341813cd'; // Pegando o secretToken do header
 
     if (!file) {
       res.status(400).send({ message: 'Nenhum arquivo enviado' });
