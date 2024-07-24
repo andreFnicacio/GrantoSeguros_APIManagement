@@ -103,12 +103,6 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
 };
 
 export const getDocuments = async (req: Request, res: Response): Promise<void> => {
-  const secretToken = req.headers.accept; // Pegando o secretToken do header
-
-  if (!secretToken) {
-    res.status(400).send({ message: 'SecretToken não fornecido no header' });
-    return;
-  }
 
   try {
     const documents = await prisma.document.findMany();
