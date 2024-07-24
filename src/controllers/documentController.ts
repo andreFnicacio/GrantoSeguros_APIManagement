@@ -87,7 +87,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
       // Enviar o conteúdo para o micro-serviço da Ursula
       const responseFromMicroservice = await sendToMicroservice(fileContent);
       const documentData = JSON.parse(responseFromMicroservice.body);
-
+      console.log(documentData);
       // Salvar a resposta no banco de dados
       const document = await prisma.document.create({
         data: {
