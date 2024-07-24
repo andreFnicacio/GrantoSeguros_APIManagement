@@ -89,7 +89,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
           category: documentData.category,
           cnpj_contratante: documentData.cnpj_contratante,
           contracted_value: documentData.contracted_value,
-          initial_validity: documentData.initial_validity,
+          initial_validity: documentData.initial_validity || null,
           duration: documentData.duration || null, // Adicionando valor padrão para campo opcional
           contratante: documentData.contratante,
           contratada: documentData.contratada,
