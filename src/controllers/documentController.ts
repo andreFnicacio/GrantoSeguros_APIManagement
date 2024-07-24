@@ -104,7 +104,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
 
       res.status(200).send({ message: 'Documento enviado e registrado com sucesso', document });
     } catch (error) {
-      res.status(400).send({ message: 'Erro ao processar o documento', error: error });
+      res.status(403).send({ message: 'Erro ao processar o documento', error: error });
     }
   });
 };
