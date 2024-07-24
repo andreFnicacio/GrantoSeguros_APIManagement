@@ -9,7 +9,6 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage }).single('file');
-let data = [];
 
 const cleanContent = (content: string): string => {
   // Remove quebras de linha, tabs e caracteres especiais indesejados
@@ -82,26 +81,35 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
       // Enviar o conteúdo para o micro-serviço da Ursula
       const responseFromMicroservice = await sendToMicroservice(fileContent);
       const documentData = JSON.parse(responseFromMicroservice.body);
-      console.log(documentData);
-      // Salvar a resposta no banco de dados
-      const document = {
-        category: documentData.category,
-        cnpj_contratante: documentData.cnpj_contratante,
-        contracted_value: documentData.contracted_value,
-        initial_validity: documentData.initial_validity,
-        duration: documentData.duration,
-        contratante: documentData.contratante,
-        contratada: documentData.contratada,
-      };
+      console.log('Dados recebidos do micro-serviço:', documentData);
 
-      data.push(document);
+      // Verifique a estrutura dos dados recebidos
+      if (!documentData.category || !documentData.cnpj_contratante || !documentData.contracted_value || !documentData.initial_validity || !documentData.contratante || !documentData.contratada) {
+        res.status(400).send({ message: 'Dados incompletos recebidos do micro-serviço' });
+        return;
+      }
+
+      // Salvar a resposta no banco de dados
+      const document = await prisma.document.create({
+        data: {
+          category: documentData.category,
+          cnpj_contratante: documentData.cnpj_contratante,
+          contracted_value: documentData.contracted_value,
+          initial_validity: documentData.initial_validity,
+          duration: documentData.duration || null, // Adicionando valor padrão para campo opcional
+          contratante: documentData.contratante,
+          contratada: documentData.contratada,
+        },
+      });
 
       res.status(200).send({ message: 'Documento enviado e registrado com sucesso', document });
     } catch (error) {
+      console.error('Erro ao processar o documento:', error);
       res.status(403).send({ message: 'Erro ao processar o documento', error: error });
     }
   });
 };
+
 
 export const getDocuments = async (req: Request, res: Response): Promise<void> => {
 
