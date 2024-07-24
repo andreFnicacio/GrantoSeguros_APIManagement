@@ -95,7 +95,7 @@ router.get('/', getUserByPhone);
 
 /**
  * @swagger
- * /ursula/upload:
+ * /users/ursula/upload:
  *   post:
  *     summary: Faz upload de um documento
  *     tags: [Documents]
@@ -126,7 +126,7 @@ router.post('/ursula/upload', uploadDocument);
 
 /**
  * @swagger
- * /ursula/documents:
+ * /users/ursula/documents:
  *   get:
  *     summary: Busca todos os documentos associados ao secret token
  *     tags: [Documents]
@@ -147,7 +147,7 @@ router.get('/ursula/documents', getDocuments);
 
 /**
  * @swagger
- * /ursula/documents:
+ * /users/ursula/documents:
  *   delete:
  *     summary: Apaga todos os documentos associados ao secret token
  *     tags: [Documents]
