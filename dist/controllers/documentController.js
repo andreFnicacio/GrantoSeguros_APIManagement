@@ -35,13 +35,8 @@ const uploadDocument = async (req, res) => {
             return;
         }
         const file = req.file;
-        const secretToken = req.headers.accept; // Pegando o secretToken do header
         if (!file) {
             res.status(400).send({ message: 'Nenhum arquivo enviado' });
-            return;
-        }
-        if (!secretToken) {
-            res.status(400).send({ message: 'SecretToken não fornecido no header' });
             return;
         }
         const fileType = file.mimetype;
@@ -80,6 +75,7 @@ const uploadDocument = async (req, res) => {
             // Enviar o conteúdo para o micro-serviço da Ursula
             const responseFromMicroservice = await sendToMicroservice(fileContent);
             const documentData = JSON.parse(responseFromMicroservice.body);
+            console.log(documentData);
             // Salvar a resposta no banco de dados
             const document = await prisma.document.create({
                 data: {
@@ -90,13 +86,12 @@ const uploadDocument = async (req, res) => {
                     duration: documentData.duration,
                     contratante: documentData.contratante,
                     contratada: documentData.contratada,
-                    secretToken: secretToken, // Usando o secretToken do header
                 },
             });
             res.status(200).send({ message: 'Documento enviado e registrado com sucesso', document });
         }
         catch (error) {
-            res.status(400).send({ message: 'Erro ao processar o documento', error: error });
+            res.status(403).send({ message: 'Erro ao processar o documento', error: error });
         }
     });
 };
@@ -108,9 +103,7 @@ const getDocuments = async (req, res) => {
         return;
     }
     try {
-        const documents = await prisma.document.findMany({
-            where: { secretToken: secretToken },
-        });
+        const documents = await prisma.document.findMany();
         res.status(200).json(documents);
     }
     catch (error) {
@@ -125,9 +118,7 @@ const deleteDocuments = async (req, res) => {
         return;
     }
     try {
-        await prisma.document.deleteMany({
-            where: { secretToken: secretToken },
-        });
+        await prisma.document.deleteMany();
         res.status(200).send({ message: 'Documentos apagados com sucesso' });
     }
     catch (error) {

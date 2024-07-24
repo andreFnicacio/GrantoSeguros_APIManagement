@@ -26,6 +26,5 @@ model Document {
   duration          String?
   contratante       String
   contratada        String
-  secretToken       String
 }
 

@@ -34,15 +34,9 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
     }
 
     const file = req.file;
-    const secretToken = req.headers.accept; 
 
     if (!file) {
       res.status(400).send({ message: 'Nenhum arquivo enviado' });
-      return;
-    }
-
-    if (!secretToken) {
-      res.status(402).send({ message: 'SecretToken não fornecido no header' });
       return;
     }
 
@@ -98,7 +92,6 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
           duration: documentData.duration,
           contratante: documentData.contratante,
           contratada: documentData.contratada,
-          secretToken: secretToken as string,
         },
       });
 
@@ -118,9 +111,7 @@ export const getDocuments = async (req: Request, res: Response): Promise<void> =
   }
 
   try {
-    const documents = await prisma.document.findMany({
-      where: { secretToken: secretToken as string },
-    });
+    const documents = await prisma.document.findMany();
 
     res.status(200).json(documents);
   } catch (error) {
@@ -137,9 +128,7 @@ export const deleteDocuments = async (req: Request, res: Response): Promise<void
   }
 
   try {
-    await prisma.document.deleteMany({
-      where: { secretToken: secretToken as string },
-    });
+    await prisma.document.deleteMany();
 
     res.status(200).send({ message: 'Documentos apagados com sucesso' });
   } catch (error) {
