@@ -83,12 +83,6 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
       const documentData = JSON.parse(responseFromMicroservice.body);
       console.log('Dados recebidos do micro-serviço:', documentData);
 
-      // Verifique a estrutura dos dados recebidos
-      if (!documentData.category || !documentData.cnpj_contratante || !documentData.contracted_value || !documentData.initial_validity || !documentData.contratante || !documentData.contratada) {
-        res.status(400).send({ message: 'Dados incompletos recebidos do micro-serviço' });
-        return;
-      }
-
       // Salvar a resposta no banco de dados
       const document = await prisma.document.create({
         data: {
