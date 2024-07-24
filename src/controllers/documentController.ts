@@ -98,7 +98,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
           duration: documentData.duration,
           contratante: documentData.contratante,
           contratada: documentData.contratada,
-          secretToken: secretToken as string, // Usando o secretToken do header
+          secretToken: secretToken as string,
         },
       });
 

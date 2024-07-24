@@ -15,7 +15,6 @@ model User {
   phone       String
   password    String
   secretToken String    @unique @default("")
-  documents   Document[]
 }
 
 model Document {
@@ -28,6 +27,5 @@ model Document {
   contratante       String
   contratada        String
   secretToken       String
-  user              User?     @relation(fields: [secretToken], references: [secretToken])
 }
 
