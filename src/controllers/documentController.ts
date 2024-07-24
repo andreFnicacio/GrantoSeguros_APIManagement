@@ -42,7 +42,7 @@ export const uploadDocument = async (req: Request, res: Response): Promise<void>
     }
 
     if (!secretToken) {
-      res.status(400).send({ message: 'SecretToken não fornecido no header' });
+      res.status(402).send({ message: 'SecretToken não fornecido no header' });
       return;
     }
 
