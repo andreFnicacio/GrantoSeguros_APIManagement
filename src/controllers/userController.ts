@@ -15,13 +15,14 @@ export const createUser = async (req: Request, res: Response) => {
     if (existingUser) {
       return res.status(405).json({ error: 'Email já está em uso' });
     }
-
+    const secretToken = "grantousTOken";
     const user = await prisma.user.create({
       data: {
         name,
         email,
         phone,
         password,
+        secretToken
       },
     });
     res.status(201).json(user);
