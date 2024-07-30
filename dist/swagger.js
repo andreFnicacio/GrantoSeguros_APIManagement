@@ -16,7 +16,7 @@ const options = {
         },
         servers: [
             {
-                url: 'https://grantosegurosapimanagement-production.up.railway.app',
+                url: 'http://Localhost:3000',
             },
         ],
     },

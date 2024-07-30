@@ -74,6 +74,7 @@ const uploadDocument = async (req, res) => {
             }
             // Enviar o conteúdo para o micro-serviço da Ursula
             const responseFromMicroservice = await sendToMicroservice(fileContent);
+            console.log(responseFromMicroservice);
             const documentData = JSON.parse(responseFromMicroservice.body);
             console.log('Dados recebidos do micro-serviço:', documentData);
             // Salvar a resposta no banco de dados
