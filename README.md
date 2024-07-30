@@ -64,7 +64,7 @@ Este projeto é uma API para gerenciamento de documentos utilizando Node.js, Exp
    ```
 
 2. **Acesse a documentação Swagger**:
-   Abra o navegador e vá para `http://localhost:3000/api-docs` para acessar a documentação da API.
+   Abra o navegador e vá para `https://grantosegurosapimanagement-production.up.railway.app/api-docs` para acessar a documentação da API.
 
 ## Rotas da API
 
